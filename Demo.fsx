@@ -43,6 +43,14 @@ x = 20
 
 
 
+
+
+
+
+
+
+
+
 // mutability
 let mutable y = 10
 y <- 20
@@ -173,6 +181,16 @@ add 1 2
 
 
 
+
+
+
+
+
+
+
+
+
+
 // Demo - module 2
 
 
@@ -232,6 +250,11 @@ let mul2 = mul 2
 
 
 
+
+
+
+
+
 // compositions
 let add10mul2 = add10 >> mul2
 
@@ -251,14 +274,41 @@ add10mul2 2
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Demo - module 3
 
 
 // Options
 let divide x y = if y = 0 then None else Some (x/y)
-let result = divide 10 -2
+let result = divide 10 0
 
 if result |> Option.isNone then printfn "division error" else printfn "The result is %i"  result.Value
+
+
+
+
+
+
+
+
 
 
 
@@ -328,7 +378,7 @@ let print x =
 type [<Measure>] SEK
 type [<Measure>] NOK
 
-let nok2Sek nok = 1.<SEK> * 1.1 * nok / 1.<NOK>
+let nok2Sek (nok:float<NOK>) = 1.<SEK> * System.Math.Round((1.1 * nok / 1.<NOK>), 1)
 
 100.<NOK> = 100.<SEK>
 nok2Sek 100.<NOK> = 100.<SEK>
@@ -374,9 +424,8 @@ let numbers = [1 .. 2 .. 100]
 // Not optimal prime implementation
 let isPrime x = 
     [2 .. (x - 1)/2] 
-    |> List.filter (fun i -> x % i = 0)
-    |> List.length
-    |> (=) 0
+    |> List.tryFind (fun i -> x % i = 0)
+    |> Option.isNone
 
 numbers |> List.filter isPrime
 
@@ -406,11 +455,24 @@ let takeEverySnd list =
     let rec takeEverySnd tookLast xs result =
         match tookLast, xs with
         | _, [] -> result |> List.rev
-        | false, x::xs' -> takeEverySnd true xs' (x::result)
-        | true, x::xs' -> takeEverySnd false xs' result
+        | false, head::tail -> takeEverySnd true tail (head::result)
+        | true, _::tail -> takeEverySnd false tail result
     takeEverySnd false list []
 
 primes |> takeEverySnd
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -485,7 +547,7 @@ type MyCSVType = CsvProvider<sample,",">
 let data = MyCSVType.Parse(sample)
 data.Rows 
 |> Seq.toList 
-|> List.filter (fun i -> i.Canfly) 
+|> List.filter (fun i -> not i.Canfly) 
 |> List.filter (fun i -> i.Legs > 2)
 |> List.map (fun i -> printfn "%s %i" i.Animal i.Legs)
 
